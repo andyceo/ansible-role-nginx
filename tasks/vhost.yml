@@ -1,0 +1,54 @@
+---
+# Description: Create a new Nginx virtual hosts
+# Original from: https://github.com/gaspaio/ansible-devbox/blob/master/roles/apache/tasks/vhost_add.yml
+#
+# Parameters:
+# - {{ vhosts }} : Virtual hosts hash. See defaults/main.yml
+
+
+- name: Change default virtual host to given vhost and port (always should be enabled)
+  lineinfile:
+    dest={{ nginx.default_vhost_path }}
+    regexp='^(.*?)listen(.*)default_server;$'
+    line="\1listen {{ nginx.listen|join(' default_server; listen ') }} default_server;"
+    backrefs=yes
+  sudo: yes
+  notify: nginx-reload
+
+- name: Disabling virtual hosts
+  command:
+    rm /etc/nginx/sites-enabled/{{ item.key }}.conf
+    removes=/etc/nginx/sites-enabled/{{ item.key }}.conf
+  with_dict: vhosts
+  sudo: yes
+  notify: nginx-reload
+  when: "not item.value.enabled|bool"
+
+- name: Removing virtual hosts
+  command:
+    rm /etc/nginx/sites-available/{{ item.key }}.conf
+    removes=/etc/nginx/sites-available/{{ item.key }}.conf
+  with_dict: vhosts
+  sudo: yes
+  notify: nginx-reload
+  when: "not item.value.enabled|bool"
+
+- name: Adding virtual hosts
+  template:
+    src=vhost.j2
+    dest=/etc/nginx/sites-available/{{ item.key }}.conf
+    mode=0644
+  with_dict: vhosts
+  sudo: yes
+  notify: nginx-reload
+  when: item.value.enabled|bool
+
+- name: Enabling virtual hosts
+  file:
+    dest=/etc/nginx/sites-enabled/{{ item.key }}.conf
+    src=/etc/nginx/sites-available/{{ item.key }}.conf
+    state=link
+  with_dict: vhosts
+  sudo: yes
+  notify: nginx-reload
+  when: item.value.enabled|bool

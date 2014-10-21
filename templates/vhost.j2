@@ -1,0 +1,60 @@
+server {
+
+    listen {% if item.value.listen is defined %}{{ item.value.listen|join(' ; listen ') }}{% else %}{{ nginx.listen|join(' ; listen ') }}{%endif %};
+
+    server_name {{ item.value.name }};
+
+    {% if item.value.aliases is defined %}server_name {{ item.value.aliases|join(' ') }};{%endif %}
+
+    root {{ item.value.root }};
+
+    log_not_found off;
+
+    error_page 404 403 = @backend;
+
+
+################## Redirections ###################
+    # COMMON redirect - from www.example.com to example.com
+    set $www '';
+    set $h $host;
+    if ($host ~* "^([w]{3}\.)(.*)$") {
+        set $www $1;
+        set $h $2;
+    }
+    if ($www = 'www.') {
+        rewrite ^/(.*)$ $scheme://$h/$1  permanent;
+    }
+################## end of Redirections block ###################
+
+
+
+{% set backend = nginx.settings.upstreams|list|first %}
+
+
+    # This location fix bug with Global Redirect module.
+    # @see http://drupal.org/node/1627176 - Redirect loop on frontpage if use nginx before apache (proxy)
+    # We don't need here internal redirect change the URI to "/index.php", what happens accordingly with
+    # "index index.php" directive, so we pass query to backend with trailing slash.
+    location / {
+        proxy_pass  http://{{ backend }}/;
+    }
+
+    location ~ \.php$ {
+        proxy_pass  http://{{ backend }};
+    }
+
+    location @backend {
+        proxy_pass  http://{{ backend }};
+    }
+
+    location ~ /\.ht {
+        deny  all;
+    }
+
+
+
+    {% if item.value.nginx is defined %}
+      {{ item.value.nginx|indent(2) }}
+    {% endif %}
+
+}

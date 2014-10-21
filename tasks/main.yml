@@ -1,0 +1,28 @@
+---
+
+- name: Install nginx-naxsi
+  apt: pkg='nginx-naxsi'
+  sudo: yes
+
+- name: Copy Nginx main configuration file
+  template:
+    src=nginx.conf.j2
+    dest=/etc/nginx/nginx.conf
+    mode=0644
+    owner=root
+    group=root
+  sudo: yes
+  notify: nginx-restart
+
+- name: Copy Nginx proxy configuration file
+  template:
+    src=proxy_params.j2
+    dest=/etc/nginx/proxy_params
+    mode=0644
+    owner=root
+    group=root
+  sudo: yes
+  notify: nginx-restart
+
+- name: Adding/removing Nginx virtual hosts
+  include: vhost.yml

@@ -1,0 +1,9 @@
+{% if nginx.settings.proxy_params.proxy_set_header is defined %}
+{% for key, value in nginx.settings.proxy_params.proxy_set_header.iteritems() | sort %}
+proxy_set_header {{ key }} {{ value }};
+{% endfor %}
+{% endif %}
+
+{% for key, value in nginx.settings.proxy_params.iteritems() | sort if key != 'proxy_set_header' %}
+{{ key }} {{ value }};
+{% endfor %}
