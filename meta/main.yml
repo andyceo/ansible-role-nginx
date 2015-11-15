@@ -1,9 +1,6 @@
 ---
 allow_duplicates: no
 
-dependencies:
-  - { role: andyceo.preconf }
-
 galaxy_info:
   author: andyceo
   description: Install nginx web server (nginx-naxsi), manage virtual hosts and settings for them
