@@ -1,0 +1,9 @@
+{% if nginx.settings.fastcgi_params.fastcgi_param is defined %}
+{% for key, value in nginx.settings.fastcgi_params.fastcgi_param.iteritems() | sort %}
+fastcgi_param {{ key }} {{ value }};
+{% endfor %}
+{% endif %}
+
+{% for key, value in nginx.settings.fastcgi_params.iteritems() | sort if key != 'fastcgi_param' %}
+{{ key }} {{ value }};
+{% endfor %}

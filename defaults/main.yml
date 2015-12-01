@@ -69,7 +69,7 @@ nginx:
 
     proxy_params:
       proxy_set_header:
-        Host: "$host"
+        "Host": "$host"
         "X-Real-IP": "$remote_addr"
         "X-Forwarded-For": "$proxy_add_x_forwarded_for"
       proxy_buffers: 32 4k
@@ -77,6 +77,27 @@ nginx:
       proxy_redirect: 'off'
       proxy_read_timeout: 90s
       proxy_send_timeout: 20s
+
+    fastcgi_params:
+      fastcgi_param:
+        QUERY_STRING:      '$query_string'
+        REQUEST_METHOD:    '$request_method'
+        CONTENT_TYPE:      '$content_type'
+        CONTENT_LENGTH:    '$content_length'
+        SCRIPT_FILENAME:   '$request_filename'
+        SCRIPT_NAME:       '$fastcgi_script_name'
+        REQUEST_URI:       '$request_uri'
+        DOCUMENT_URI:      '$document_uri'
+        DOCUMENT_ROOT:     '$document_root'
+        SERVER_PROTOCOL:   '$server_protocol'
+        GATEWAY_INTERFACE: 'CGI/1.1'
+        SERVER_SOFTWARE:   'nginx/$nginx_version'
+        REMOTE_ADDR:       '$remote_addr'
+        REMOTE_PORT:       '$remote_port'
+        SERVER_ADDR:       '$server_addr'
+        SERVER_PORT:       '$server_port'
+        SERVER_NAME:       '$server_name'
+        HTTPS:             '$https if_not_empty'
 
 vhosts:
   'example.com':
