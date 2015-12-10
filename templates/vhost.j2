@@ -1,5 +1,8 @@
 server {
 
+
+    ## Main settings
+
     listen {% if item.value.listen is defined %}{{ item.value.listen|join(' ; listen ') }}{% else %}{{ nginx.listen|join(' ; listen ') }}{%endif %};
 
     server_name {{ item.value.name }};
@@ -8,12 +11,13 @@ server {
 
     root {{ item.value.root }};
 
+    # You can enable it back, and add error_page directive in
+    # vhost['your_virtual_host'].nginx.settings
     log_not_found off;
 
-    error_page 404 403 = @backend;
 
+    ## Redirections
 
-################## Redirections ###################
     # COMMON redirect - from www.example.com to example.com
     set $www '';
     set $h $host;
@@ -24,37 +28,35 @@ server {
     if ($www = 'www.') {
         rewrite ^/(.*)$ $scheme://$h/$1  permanent;
     }
-################## end of Redirections block ###################
 
 
-
-{% set backend = nginx.settings.upstreams|list|first %}
-
-
-    # This location fix bug with Global Redirect module.
-    # @see http://drupal.org/node/1627176 - Redirect loop on frontpage if use nginx before apache (proxy)
-    # We don't need here internal redirect change the URI to "/index.php", what happens accordingly with
-    # "index index.php" directive, so we pass query to backend with trailing slash.
-    location / {
-        proxy_pass  http://{{ backend }}/;
-    }
-
-    location ~ \.php$ {
-        proxy_pass  http://{{ backend }};
-    }
-
-    location @backend {
-        proxy_pass  http://{{ backend }};
-    }
-
-    location ~ /\.ht {
-        deny  all;
-    }
-
-
+    ## Locations
 
     {% if item.value.nginx is defined %}
-      {{ item.value.nginx|indent(2) }}
+
+        {% for location_key, location in item.value.nginx.locations.iteritems() %}
+
+            {% if (location is not defined or not location or location_key == location) and nginx.settings.locations[location_key] is defined %}
+            {% set location = nginx.settings.locations[location_key] %}
+            {% endif %}
+
+            location {{ location.pattern }} {
+                {% if location.includes is defined %}
+                    {% for include in location.includes | sort %}
+                        # This is include from nginx.settings.includes.{{ include }}
+                        {{ nginx.settings.includes[include] }}
+                    {% endfor %}
+                {% endif %}
+
+                {{ location.location }}
+            }
+
+        {% endfor %}
+
+        {% if item.value.nginx.settings is defined %}
+          {{ item.value.nginx.settings|indent(2) }}
+        {% endif %}
+
     {% endif %}
 
 }

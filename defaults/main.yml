@@ -64,8 +64,18 @@ nginx:
       gzip_types: text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript
 
     upstreams:
-      backend: |
+
+      # Check your Apache NameVirtualHost and Listen directives (note
+      # that NameVirtualHost is deprecated):
+      # Listen 127.0.0.1:8080
+      # NameVirtualHost 127.0.0.1:8080
+      "apache2": |
         server 127.0.0.1:8080;
+
+      # Check your PHP-FPM port or socket settings. Usualy they are in
+      # "/etc/php5/fpm/pool.d/www.conf"
+      "php-fpm": |
+        server unix:/var/run/php5-fpm.sock;
 
     proxy_params:
       proxy_set_header:
@@ -99,7 +109,140 @@ nginx:
         SERVER_NAME:       '$server_name'
         HTTPS:             '$https if_not_empty'
 
+    # Use this to define some includables to locations, server or other
+    # configuration
+    includes:
+
+      #   This is usualy used with apache2 upstream basic location
+      # pattern: ~ \.php$
+      apache2: |
+        proxy_pass  http://apache2;
+
+      #   This location fix bug with Global Redirect module.
+      # @see http://drupal.org/node/1627176 - Redirect loop on frontpage
+      # if use nginx before apache (proxy)
+      #   We don't need here internal redirect change the URI to
+      # "/index.php", what happens accordingly with "index index.php"
+      # directive, so we pass query to backend with trailing slash.
+      #   Full location should be this:
+      # location / {
+      #   proxy_pass  http://your_named_location_with_upstream/;
+      # }
+      drupal_global_redirect: |
+        proxy_pass  http://apache2/
+
+      # This location is usualy used with php-fpm upstream
+      php-fpm: |
+        # php-fpm is a upstream name in fastcgi_pass directive
+        fastcgi_pass php-fpm;
+
+        # include basic fastcgi params first
+        include fastcgi_params;
+
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+
+        # (@see http://wiki.nginx.org/Pitfalls)
+        fastcgi_param SCRIPT_FILENAME   $document_root$fastcgi_script_name;
+        fastcgi_param PATH_TRANSLATED   $document_root$fastcgi_script_name;
+
+        # @see http://trac.nginx.org/nginx/ticket/321
+        set $path_info $fastcgi_path_info;
+        fastcgi_param PATH_INFO $path_info;
+
+        # Additional variables
+        fastcgi_param SERVER_ADMIN admin@example.com;
+        fastcgi_param SERVER_SIGNATURE nginx/$nginx_version;
+        fastcgi_index index.php;
+
+    # Use this to define locations, that can be attached to virtual host
+    locations:
+
+      favicon_ico:
+        pattern: '= /favicon.ico'
+        location: |
+          log_not_found off;
+          access_log off;
+
+      robots_txt:
+        pattern: '= /robots.txt'
+        location: |
+          allow all;
+          log_not_found off;
+          access_log off;
+
+      txt_and_log_only_for_lan:
+        pattern: '~* \.(txt|log)$'
+        location: |
+          # Very rarely should these ever be accessed outside of your lan
+          allow 192.168.0.0/16;
+          deny all;
+
+      not_php:
+        pattern: '~ \..*/.*\.php$'
+        location: 'return 403;'
+
+      drupal_private_folder:
+        pattern: '~ ^/sites/.*/private/'
+        location: 'return 403;'
+
+      dot_files:
+        pattern: '~ (^|/)\.'
+        location: |
+          # Block access to "hidden" files and directories whose names begin with a
+          # period. This includes directories used by version control systems such
+          # as Subversion or Git to store control files.
+          return 403;
+
+      drupal_root:
+        pattern: '/'
+        location: |
+          # try_files $uri @rewrite; # For Drupal <= 6
+          try_files $uri /index.php?$query_string; # For Drupal >= 7
+
+      drupal_rewrite:
+        pattern: '@drupal_rewrite'
+        location: 'rewrite ^/(.*)$ /index.php?q=$1;'
+
+      drupal_php_fpm:
+        pattern: '~ "\.php$|^/update.php"'
+        includes:
+          - 'php-fpm'
+        location: |
+          # In Drupal 8, we must also match new paths where the '.php' appears in the middle,
+          # such as update.php/selection. The rule we use is strict, and only allows this pattern
+          # with the update.php front controller.  This allows legacy path aliases in the form of
+          # blog/index.php/legacy-path to continue to route to Drupal nodes. If you do not have
+          # any paths like that, then you might prefer to use a laxer rule, such as:
+          #   location ~ \.php(/|$) {
+          # The laxer rule will continue to work if Drupal uses this new URL pattern with front
+          # controllers other than update.php in a future release.
+          fastcgi_split_path_info ^(.+?\.php)(|/.*)$;
+          #NOTE: You should have "cgi.fix_pathinfo = 0;" in php.ini
+          fastcgi_param SCRIPT_FILENAME $request_filename;
+
+      drupal_styles:
+        pattern: '~ ^/sites/.*/files/styles/'
+        location: |
+          # Fighting with Styles? This little gem is amazing.
+          # location ~ ^/sites/.*/files/imagecache/ { # For Drupal <= 6
+          try_files $uri @drupal_rewrite;
+
+      drupal_static:
+        pattern: '~* \.(js|css|png|jpg|jpeg|gif|ico)$'
+        location: |
+          expires max;
+          log_not_found off;
+
+
+# Virtual host example for static nginx
+
+# If you define nginx key for virtual key, it must contain at least one
+# location in vhost['your_virtual_host'].nginx.locations.
+
+# @todo: what about upstream? it not used ain vhost.j2
+
 vhosts:
+
   'example.com':
     enabled: no
     listen:
@@ -108,4 +251,73 @@ vhosts:
     name: example.com
     aliases:
       - www.example.com
-    settings_nginx: ""
+    nginx:
+      upstream: no
+      locations: [ ]
+      settings: ''
+
+# Virtual host example for nginx worked as proxy with apache2 backend.
+  'example.org':
+    enabled: no
+    listen:
+      - '*:80'
+    root: /var/www
+    name: example.org
+    aliases:
+      - www.example.org
+    nginx:
+      locations:
+        - apache2
+        - drupal_global_redirect
+      settings: |
+        error_page 404 403 = @apache2; # used one of named location
+
+        location ~ \.php$ {
+          # In proxy_pass you should specify upstream name.
+          proxy_pass  http://apache2;
+        }
+
+# Virtual host example for nginx with php-fpm backend
+  'example.net':
+    enabled: no
+    listen:
+      - '*:80'
+    root: /var/www
+    name: example.net
+    aliases:
+      - www.example.net
+    nginx:
+      locations:
+        'php-fpm':
+          pattern: '~ \.php$'
+          includes:
+            - 'php-fpm'
+          location: |
+            # This is main php-fpm redirecing location
+
+      settings: |
+        error_page 404 403 = @php-fpm; # used one of named location
+
+# Virtual host example for nginx with php-fpm backend for Drupal 8 site
+# @see https://www.nginx.com/resources/wiki/start/topics/recipes/drupal/
+  'drupal8-example.com':
+    enabled: no
+    listen:
+      - '*:80'
+    root: /var/www
+    name: example.net
+    aliases:
+      - www.drupal8-example.com
+    nginx:
+      locations:
+        favicon_ico:
+        robots_txt: robots_txt
+        txt_and_log_only_for_lan: []
+        not_php: {}
+        drupal_private_folder: false
+        dot_files: dot_files
+        drupal_root: no
+        drupal_rewrite: false
+        drupal_php_fpm:
+        drupal_styles:
+        drupal_static:
