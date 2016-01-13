@@ -253,7 +253,7 @@ vhosts:
       - www.example.com
     nginx:
       upstream: no
-      locations: [ ]
+      locations: {  }
       settings: ''
 
 # Virtual host example for nginx worked as proxy with apache2 backend.
@@ -267,8 +267,18 @@ vhosts:
       - www.example.org
     nginx:
       locations:
-        - apache2
-        - drupal_global_redirect
+        apache2:
+          pattern: '~ \.php$'
+          includes:
+            - apache2
+          location: |
+            # This attribute is required, but can be empty
+            # (content will be used from 'includes' attribute)
+        drupal_global_redirect:
+          pattern: '/'
+          includes:
+            - drupal_global_redirect
+          location: ''
       settings: |
         error_page 404 403 = @apache2; # used one of named location
 
