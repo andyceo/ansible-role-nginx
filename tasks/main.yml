@@ -2,7 +2,6 @@
 
 - name: Install nginx-naxsi
   apt: pkg='nginx-naxsi'
-  sudo: yes
 
 - name: Copy Nginx main configuration file
   template:
@@ -11,7 +10,6 @@
     mode=0644
     owner=root
     group=root
-  sudo: yes
   notify: nginx-restart
 
 - name: Copy Nginx proxy configuration file
@@ -21,7 +19,6 @@
     mode=0644
     owner=root
     group=root
-  sudo: yes
   notify: nginx-restart
 
 - name: Copy Nginx fastcgi configuration file
@@ -31,7 +28,6 @@
     mode=0644
     owner=root
     group=root
-  sudo: yes
   notify: nginx-restart
 
 - name: Adding/removing Nginx virtual hosts

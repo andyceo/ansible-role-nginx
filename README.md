@@ -2,6 +2,8 @@
 
 Install nginx (naxsi version), add virtual hosts and provide ability to set settings for them.
 
+Every task in this role have to be executed under root privileges, so use `become: yes` (Ansible 2.x) or `sudo: yes` (Ansible 1.x) on playbook level.
+
 This role can manage most popular nginx usage scenarios:
 
 1. Nginx as main server, no requests send to any backends nor dynamic content generated. Nginx just serve static content

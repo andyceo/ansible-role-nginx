@@ -13,7 +13,6 @@
     regexp='^(.*?)listen(.*)default_server;$'
     line="\1listen {{ nginx.listen|join(' default_server; listen ') }} default_server;"
     backrefs=yes
-  sudo: yes
   notify: nginx-reload
 
 - name: Disabling virtual hosts
@@ -21,7 +20,6 @@
     rm /etc/nginx/sites-enabled/{{ item.key }}.conf
     removes=/etc/nginx/sites-enabled/{{ item.key }}.conf
   with_dict: vhosts
-  sudo: yes
   notify: nginx-reload
   when: "not item.value.enabled|bool"
 
@@ -30,7 +28,6 @@
     rm /etc/nginx/sites-available/{{ item.key }}.conf
     removes=/etc/nginx/sites-available/{{ item.key }}.conf
   with_dict: vhosts
-  sudo: yes
   notify: nginx-reload
   when: "not item.value.enabled|bool"
 
@@ -40,7 +37,6 @@
     dest=/etc/nginx/sites-available/{{ item.key }}.conf
     mode=0644
   with_dict: vhosts
-  sudo: yes
   notify: nginx-reload
   when: item.value.enabled|bool
 
@@ -50,6 +46,5 @@
     src=/etc/nginx/sites-available/{{ item.key }}.conf
     state=link
   with_dict: vhosts
-  sudo: yes
   notify: nginx-reload
   when: item.value.enabled|bool

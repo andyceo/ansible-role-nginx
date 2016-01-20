@@ -1,23 +1,21 @@
+---
+
 - name: nginx-start
   service:
     name=nginx
     start=started
-  sudo: yes
 
 - name: nginx-stop
   service:
     name=nginx
     start=stopped
-  sudo: yes
 
 - name: nginx-reload
   service:
     name=nginx
     state=reloaded
-  sudo: yes
 
 - name: nginx-restart
   service:
     name=nginx
     state=restarted
-  sudo: yes
