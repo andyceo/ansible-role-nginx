@@ -63,6 +63,18 @@ nginx:
       gzip_http_version: 1.1
       gzip_types: text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript
 
+
+      ##
+      # SSL Settings
+      ##
+
+      ssl: 'off'
+      ssl_protocols: 'TLSv1 TLSv1.1 TLSv1.2'
+      ssl_ciphers: 'HIGH:!aNULL:!MD5'
+      # This ssl_session* params hold up to 20 000 ssl sessions.
+      ssl_session_cache: 'shared:SSL:5m'
+      ssl_session_timeout: '10m'
+
     upstreams:
 
       # Check your Apache NameVirtualHost and Listen directives (note
