@@ -20,11 +20,13 @@ http {
   {% endfor %}
 
   {% for key, value in nginx.settings.upstreams.iteritems() | sort %}
+  {% if value %}
 
     upstream {{ key }} {
       {{ value }}
     }
 
+  {% endif %}
   {% endfor %}
 
     include /etc/nginx/mime.types;
