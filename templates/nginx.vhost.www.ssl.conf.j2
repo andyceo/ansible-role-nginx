@@ -1,0 +1,43 @@
+server {
+    listen *:80;
+
+    server_name {{ item.value.name }};
+{% if item.value.aliases is defined %}
+{% for alias in item.value.aliases %}
+    server_name {{ alias }};
+{% endfor %}
+{% endif %}
+
+    return 301 https://{{ item.value.name }}$request_uri;
+}
+
+{% if item.value.aliases is defined %}
+server {
+    listen *:443 ssl;
+
+{% for alias in item.value.aliases %}
+    server_name {{ alias }};
+{% endfor %}
+
+    ssl on;
+{% for key, value in item.value.nginx.ssl.iteritems() | sort %}
+    {{ key }} {{ value }};
+{% endfor %}
+
+    return 301 https://{{ item.value.name }}$request_uri;
+}
+{% endif %}
+
+server {
+    listen *:443 ssl;
+
+    server_name {{ item.value.name }};
+
+    ssl on;
+{% for key, value in item.value.nginx.ssl.iteritems() | sort %}
+    {{ key }} {{ value }};
+{% endfor %}
+    add_header Strict-Transport-Security "max-age=31536000; preload";
+
+    {% include 'nginx.vhost.base.conf.j2' %}
+}

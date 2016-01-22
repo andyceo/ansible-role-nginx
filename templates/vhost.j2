@@ -1,6 +1,5 @@
 server {
 
-
     ## Main settings
 
     listen {% if item.value.listen is defined %}{{ item.value.listen|join(' ; listen ') }}{% else %}{{ nginx.listen|join(' ; listen ') }}{%endif %};
@@ -8,13 +7,6 @@ server {
     server_name {{ item.value.name }};
 
     {% if item.value.aliases is defined %}server_name {{ item.value.aliases|join(' ') }};{%endif %}
-
-    root {{ item.value.root }};
-
-    # You can enable it back, and add error_page directive in
-    # vhost['your_virtual_host'].nginx.settings
-    log_not_found off;
-
 
     ## Redirections
 
@@ -29,34 +21,6 @@ server {
         rewrite ^/(.*)$ $scheme://$h/$1  permanent;
     }
 
-
-    ## Locations
-
-    {% if item.value.nginx is defined %}
-
-        {% for location_key, location in item.value.nginx.locations.iteritems() %}
-
-            {% if (location is not defined or not location or location_key == location) and nginx.settings.locations[location_key] is defined %}
-            {% set location = nginx.settings.locations[location_key] %}
-            {% endif %}
-
-            location {{ location.pattern }} {
-                {% if location.includes is defined %}
-                    {% for include in location.includes | sort %}
-                        # This is include from nginx.settings.includes.{{ include }}
-                        {{ nginx.settings.includes[include] }}
-                    {% endfor %}
-                {% endif %}
-
-                {{ location.location }}
-            }
-
-        {% endfor %}
-
-        {% if item.value.nginx.settings is defined %}
-          {{ item.value.nginx.settings|indent(2) }}
-        {% endif %}
-
-    {% endif %}
+    {% include 'nginx.vhost.base.conf.j2' %}
 
 }

@@ -10,6 +10,7 @@ nginx:
       worker_processes: 4
       pid: /var/run/nginx.pid
       error_log: /var/log/nginx/error.log
+      pcre_jit: 'off'
     events:
       worker_connections: 2048
       multi_accept: 'on'
@@ -68,12 +69,24 @@ nginx:
       # SSL Settings
       ##
 
+      # Turn ssl off by default
       ssl: 'off'
       ssl_protocols: 'TLSv1 TLSv1.1 TLSv1.2'
       ssl_ciphers: 'HIGH:!aNULL:!MD5'
       # This ssl_session* params hold up to 20 000 ssl sessions.
       ssl_session_cache: 'shared:SSL:5m'
       ssl_session_timeout: '10m'
+      # default ssl server key and certificate (openssl package)
+      ssl_certificate: '/etc/ssl/certs/ssl-cert-snakeoil.pem'
+      ssl_certificate_key: '/etc/ssl/private/ssl-cert-snakeoil.key'
+
+      ##
+      # Some other settings
+      ##
+      server_tokens: 'off'
+      add_header: 'X-Frame-Options SAMEORIGIN'
+      add_header: 'X-Content-Type-Options nosniff'
+      add_header: 'X-XSS-Protection "1; mode=block"'
 
     upstreams:
 
@@ -255,6 +268,18 @@ nginx:
 
 vhosts:
 
+  default:
+    enabled: yes
+    listen:
+      - '*:80'
+      - '*:443'
+    root: /usr/share/nginx/html
+    name: "{{ inventory_hostname }}"
+    aliases:
+      - "www.{{ inventory_hostname }}"
+    nginx:
+      template: nginx.vhost.default.conf.j2
+
   'example.com':
     enabled: no
     listen:
@@ -327,10 +352,11 @@ vhosts:
     listen:
       - '*:80'
     root: /var/www
-    name: example.net
+    name: www.drupal8-example.com
     aliases:
-      - www.drupal8-example.com
+      - drupal8-example.com
     nginx:
+      template: nginx.vhost.www.ssl.conf.j2
       locations:
         favicon_ico:
         robots_txt: robots_txt
@@ -343,3 +369,6 @@ vhosts:
         drupal_php_fpm:
         drupal_styles:
         drupal_static:
+      ssl:
+        ssl_certificate: '/etc/ssl/certs/drupal8-example.crt'
+        ssl_certificate_key: '/etc/ssl/private/your_server_hostname.key'

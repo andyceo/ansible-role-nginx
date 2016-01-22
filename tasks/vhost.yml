@@ -7,12 +7,11 @@
 # - {{ vhosts }} : Virtual hosts hash. See defaults/main.yml
 
 
-- name: Change default virtual host to given vhost and port (always should be enabled)
-  lineinfile:
+- name: Process default virtual host
+  template:
+    src={{ vhosts.default.nginx.template|default('vhost.j2') }}
     dest={{ nginx.default_vhost_path }}
-    regexp='^(.*?)listen(.*)default_server;$'
-    line="\1listen {{ nginx.listen|join(' default_server; listen ') }} default_server;"
-    backrefs=yes
+    mode=0644
   notify: nginx-reload
 
 - name: Disabling virtual hosts
@@ -21,7 +20,7 @@
     removes=/etc/nginx/sites-enabled/{{ item.key }}.conf
   with_dict: vhosts
   notify: nginx-reload
-  when: "not item.value.enabled|bool"
+  when: "not item.value.enabled|bool and (item.key != 'default')"
 
 - name: Removing virtual hosts
   command:
@@ -29,16 +28,16 @@
     removes=/etc/nginx/sites-available/{{ item.key }}.conf
   with_dict: vhosts
   notify: nginx-reload
-  when: "not item.value.enabled|bool"
+  when: "not item.value.enabled|bool and (item.key != 'default')"
 
 - name: Adding virtual hosts
   template:
-    src=vhost.j2
+    src={{ item.value.nginx.template|default('vhost.j2') }}
     dest=/etc/nginx/sites-available/{{ item.key }}.conf
     mode=0644
   with_dict: vhosts
   notify: nginx-reload
-  when: item.value.enabled|bool
+  when: "item.value.enabled|bool and item.key != 'default'"
 
 - name: Enabling virtual hosts
   file:
@@ -47,4 +46,4 @@
     state=link
   with_dict: vhosts
   notify: nginx-reload
-  when: item.value.enabled|bool
+  when: "item.value.enabled|bool and item.key != 'default'"
