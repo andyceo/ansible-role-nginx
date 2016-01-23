@@ -1,0 +1,19 @@
+{% if item.value.aliases is defined %}
+server {
+    listen *:80;
+
+    server_name {{ item.value.name }};
+{% for alias in item.value.aliases %}
+    server_name {{ alias }};
+{% endfor %}
+
+    return 301 https://{{ item.value.name }}$request_uri;
+}
+{% endif %}
+
+server {
+    listen *:80;
+    server_name {{ item.value.name }};
+
+    {% include 'nginx.vhost.base.conf.j2' %}
+}

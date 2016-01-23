@@ -27,6 +27,7 @@ nginx:
       types_hash_max_size: 2048
       server_names_hash_bucket_size: 64
       server_name_in_redirect: 'off'
+      server_tokens: 'off'
 
       index: index.html index.php
       default_type: application/octet-stream
@@ -80,13 +81,13 @@ nginx:
       ssl_certificate: '/etc/ssl/certs/ssl-cert-snakeoil.pem'
       ssl_certificate_key: '/etc/ssl/private/ssl-cert-snakeoil.key'
 
-      ##
-      # Some other settings
-      ##
-      server_tokens: 'off'
-      add_header: 'X-Frame-Options SAMEORIGIN'
-      add_header: 'X-Content-Type-Options nosniff'
-      add_header: 'X-XSS-Protection "1; mode=block"'
+    ##
+    # Additional headers
+    ##
+    headers:
+      - 'X-Frame-Options SAMEORIGIN'
+      - 'X-Content-Type-Options nosniff'
+      - 'X-XSS-Protection "1; mode=block"'
 
     upstreams:
 
@@ -272,7 +273,6 @@ vhosts:
     enabled: yes
     listen:
       - '*:80'
-      - '*:443'
     root: /usr/share/nginx/html
     name: "{{ inventory_hostname }}"
     aliases:

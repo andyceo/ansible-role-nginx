@@ -9,30 +9,46 @@ events {
   {% for key, value in nginx.settings.events.iteritems() | sort %}
   {{ key }} {{ value }};
   {% endfor %}
-
 }
 
 
 http {
 
-  {% for key, value in nginx.settings.http.iteritems() | sort %}
+  ##
+  # Basic http settings
+  ##
+{% for key, value in nginx.settings.http.iteritems() | sort %}
   {{ key }} {{ value }};
-  {% endfor %}
+{% endfor %}
 
-  {% for key, value in nginx.settings.upstreams.iteritems() | sort %}
-  {% if value %}
+{% if nginx.settings.headers is defined %}
+  ##
+  # Additional headers
+  ##
+{% for header in nginx.settings.headers | sort %}
+{% if header %}
+  add_header {{ header }};
+{% endif %}
+{% endfor %}
+{% endif %}
 
-    upstream {{ key }} {
-      {{ value }}
-    }
+  ##
+  # Upstreams
+  ##
+{% for key, value in nginx.settings.upstreams.iteritems() | sort %}
+{% if value %}
+  upstream {{ key }} {
+    {{ value }}
+  }
+{% endif %}
+{% endfor %}
 
-  {% endif %}
-  {% endfor %}
-
+  ##
+  # Includes
+  ##
     include /etc/nginx/mime.types;
     include /etc/nginx/naxsi_core.rules;
     include /etc/nginx/proxy_params;
     include /etc/nginx/conf.d/*.conf;
     include /etc/nginx/sites-enabled/*;
-
 }

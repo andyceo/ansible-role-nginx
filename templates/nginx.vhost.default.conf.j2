@@ -2,6 +2,8 @@ server {
     listen *:443 default_server ssl;
     listen [::]:443 default_server ssl ipv6only=on;
 
+    {% if vhosts.default.root is defined %}root {{ vhosts.default.root }};{% endif %}
+
     ssl on;
     ssl_certificate     /etc/ssl/certs/ssl-cert-snakeoil.pem;
     ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
@@ -13,13 +15,17 @@ server {
     listen *:80 default_server;
     listen [::]:80 default_server ipv6only=on;
 
+    {% if vhosts.default.root is defined %}root {{ vhosts.default.root }};{% endif %}
+
     # Make site accessible from http://localhost/ and let serve
     # requests without "HOST" header
     server_name "";
     server_name localhost;
+{% if vhosts.default.aliases is defined %}
 {% for alias in vhosts.default.aliases %}
     server_name {{ alias }};
 {% endfor %}
+{% endif %}
     server_name {{ vhosts.default.name }};
 
     return 444;
