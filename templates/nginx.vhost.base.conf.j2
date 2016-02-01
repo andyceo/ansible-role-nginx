@@ -8,10 +8,12 @@ log_not_found off;
 
 {% if item.value.nginx is defined %}
 
-    {% for location_key, location in item.value.nginx.locations.iteritems() %}
+    {% for location_key, location in item.value.nginx.locations|dictsort %}
 
         {% if (location is not defined or not location or location_key == location) and nginx.settings.locations[location_key] is defined %}
-        {% set location = nginx.settings.locations[location_key] %}
+          {% set location = nginx.settings.locations[location_key] %}
+        {% elif location is not mapping and nginx.settings.locations[location] is defined %}
+          {% set location = nginx.settings.locations[location] %}
         {% endif %}
 
         location {{ location.pattern }} {

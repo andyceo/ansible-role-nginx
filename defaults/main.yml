@@ -211,6 +211,12 @@ nginx:
         pattern: '~ ^/sites/.*/private/'
         location: 'return 403;'
 
+      lets_encrypt:
+        pattern: '~* ^/.well-known/'
+        location: |
+          # Allow Let's Encrypt RFC 5785 ACME protocol
+          allow all;
+
       dot_files:
         pattern: '~ (^|/)\.'
         location: |
@@ -228,6 +234,13 @@ nginx:
       drupal_rewrite:
         pattern: '@drupal_rewrite'
         location: 'rewrite ^/(.*)$ /index.php?q=$1;'
+
+      no_vendor:
+        pattern: '~ /vendor/.*\.php$'
+        location: |
+          # Don't allow direct access to PHP files in the vendor directory.
+          deny all;
+          return 404;
 
       drupal_php_fpm:
         pattern: '~ "\.php$|^/update.php"'
@@ -358,17 +371,19 @@ vhosts:
     nginx:
       template: nginx.vhost.www.ssl.conf.j2
       locations:
-        favicon_ico:
-        robots_txt: robots_txt
-        txt_and_log_only_for_lan: []
-        not_php: {}
-        drupal_private_folder: false
-        dot_files: dot_files
-        drupal_root: no
-        drupal_rewrite: false
-        drupal_php_fpm:
-        drupal_styles:
-        drupal_static:
+        01_favicon_ico: favicon_ico
+        02_robots_txt: robots_txt
+        03_txt_and_log_only_for_lan: txt_and_log_only_for_lan
+        04_not_php: not_php
+        05_drupal_private_folder: drupal_private_folder
+        06_lets_encript: lets_encrypt
+        07_dot_files: dot_files
+        08_drupal_root: drupal_root
+        09_drupal_rewrite: drupal_rewrite
+        10_no_vendor: no_vendor
+        11_drupal_php_fpm: drupal_php_fpm
+        12_drupal_styles: drupal_styles
+        13_drupal_static: drupal_static
       ssl:
         ssl_certificate: '/etc/ssl/certs/drupal8-example.crt'
         ssl_certificate_key: '/etc/ssl/private/your_server_hostname.key'
