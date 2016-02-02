@@ -1,10 +1,12 @@
 root {{ item.value.root }};
 
-# You can enable it back, and add error_page directive in
-# vhost['your_virtual_host'].nginx.settings
-log_not_found off;
+    # You can enable it back, and add error_page directive in
+    # vhost['your_virtual_host'].nginx.settings
+    log_not_found off;
 
-## Locations
+
+
+    ## Locations
 
 {% if item.value.nginx is defined %}
 
@@ -18,19 +20,23 @@ log_not_found off;
 
         location {{ location.pattern }} {
             {% if location.includes is defined %}
-                {% for include in location.includes | sort %}
-                    # This is include from nginx.settings.includes.{{ include }}
-                    {{ nginx.settings.includes[include] }}
-                {% endfor %}
-            {% endif %}
+                {%- for include in location.includes|sort -%}
 
-            {{ location.location }}
+            # This is include from nginx.settings.includes.{{ include }}
+            {{ nginx.settings.includes[include]|trim|indent(12) }}
+
+                {% endfor %}
+            {%- endif -%}
+
+            {{ location.location|trim|indent(12) }}
         }
 
-    {% endfor %}
+    {%- endfor %}
 
-    {% if item.value.nginx.settings is defined %}
-      {{ item.value.nginx.settings|indent(2) }}
-    {% endif %}
+    # Other settings
+
+        {% if item.value.nginx.settings is defined -%}
+        {{ item.value.nginx.settings|trim|indent(8) }}
+        {% endif %}
 
 {% endif %}

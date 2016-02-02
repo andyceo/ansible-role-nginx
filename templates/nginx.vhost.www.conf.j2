@@ -1,4 +1,4 @@
-{% if item.value.aliases is defined %}
+{%- if item.value.aliases is defined -%}
 server {
     listen *:80;
 
@@ -9,7 +9,7 @@ server {
 
     return 301 https://{{ item.value.name }}$request_uri;
 }
-{% endif %}
+{%- endif -%}
 
 server {
     listen *:80;
