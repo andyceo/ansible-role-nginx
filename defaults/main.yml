@@ -389,3 +389,24 @@ vhosts:
       ssl:
         ssl_certificate: '/etc/ssl/certs/drupal8-example.crt'
         ssl_certificate_key: '/etc/ssl/private/your_server_hostname.key'
+
+
+# phpMyAdmin on subdomain, without ssl (https)
+  'phpmyadmin.example.com':
+    enabled: no
+    root: /usr/share/phpmyadmin
+    listen:
+      - '*:80'
+    name: phpmyadmin.example.com
+    aliases:
+      - pma.example.com
+    nginx:
+      template: nginx.vhost.www.conf.j2
+      locations:
+        01_main:
+          pattern: '~ \.php$'
+          includes:
+            - php-fpm
+          location: |
+            fastcgi_ignore_client_abort off;
+        02_static: static
