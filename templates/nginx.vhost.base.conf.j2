@@ -1,9 +1,14 @@
 root {{ item.value.root }};
 
+
+    ## Logs
+
+    access_log {{ nginx.default_log_path }}/{{ item.value.name }}.access.log;
+    error_log {{ nginx.default_log_path }}/{{ item.value.name }}.error.log;
+
     # You can enable it back, and add error_page directive in
     # vhost['your_virtual_host'].nginx.settings
     log_not_found off;
-
 
 
     ## Locations

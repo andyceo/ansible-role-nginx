@@ -4,6 +4,7 @@ nginx:
   listen:
     - '*:80'
   default_vhost_path: /etc/nginx/sites-available/default
+  default_log_path: /var/log/nginx
   settings:
     global:
       user: www-data
@@ -266,10 +267,11 @@ nginx:
           # location ~ ^/sites/.*/files/imagecache/ { # For Drupal <= 6
           try_files $uri @drupal_rewrite;
 
-      drupal_static:
+      static:
         pattern: '~* \.(js|css|png|jpg|jpeg|gif|ico)$'
         location: |
           expires max;
+          access_log off;
           log_not_found off;
 
 
@@ -383,7 +385,7 @@ vhosts:
         10_no_vendor: no_vendor
         11_drupal_php_fpm: drupal_php_fpm
         12_drupal_styles: drupal_styles
-        13_drupal_static: drupal_static
+        13_static: static
       ssl:
         ssl_certificate: '/etc/ssl/certs/drupal8-example.crt'
         ssl_certificate_key: '/etc/ssl/private/your_server_hostname.key'
