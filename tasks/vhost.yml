@@ -18,7 +18,7 @@
   command:
     rm /etc/nginx/sites-enabled/{{ item.key }}.conf
     removes=/etc/nginx/sites-enabled/{{ item.key }}.conf
-  with_dict: vhosts
+  with_dict: "{{ vhosts }}"
   notify: nginx-reload
   when: "not item.value.enabled|bool and (item.key != 'default')"
 
@@ -26,16 +26,24 @@
   command:
     rm /etc/nginx/sites-available/{{ item.key }}.conf
     removes=/etc/nginx/sites-available/{{ item.key }}.conf
-  with_dict: vhosts
+  with_dict: "{{ vhosts }}"
   notify: nginx-reload
   when: "not item.value.enabled|bool and (item.key != 'default')"
+
+- name: Adding HTTP Basic Auth File, if needed
+  template:
+    src=htpasswd.j2
+    dest={{ nginx.default_htpasswds_path }}/{{ item.key }}
+    mode=0644
+  with_dict: "{{ vhosts }}"
+  when: "item.value.enabled|bool and item.key != 'default' and item.value.auth is defined"
 
 - name: Adding virtual hosts
   template:
     src={{ item.value.nginx.template|default('vhost.j2') }}
     dest=/etc/nginx/sites-available/{{ item.key }}.conf
     mode=0644
-  with_dict: vhosts
+  with_dict: "{{ vhosts }}"
   notify: nginx-reload
   when: "item.value.enabled|bool and item.key != 'default'"
 
@@ -44,6 +52,6 @@
     dest=/etc/nginx/sites-enabled/{{ item.key }}.conf
     src=/etc/nginx/sites-available/{{ item.key }}.conf
     state=link
-  with_dict: vhosts
+  with_dict: "{{ vhosts }}"
   notify: nginx-reload
   when: "item.value.enabled|bool and item.key != 'default'"

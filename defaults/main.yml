@@ -5,6 +5,7 @@ nginx:
     - '*:80'
   default_vhost_path: /etc/nginx/sites-available/default
   default_log_path: /var/log/nginx
+  default_htpasswds_path: /etc/nginx/htpasswds
   settings:
     global:
       user: www-data

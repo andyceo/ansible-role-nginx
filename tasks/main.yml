@@ -30,5 +30,13 @@
     group=root
   notify: nginx-restart
 
+- name: Ensures htpasswds dir exists
+  file:
+    path={{ nginx.default_htpasswds_path }}
+    state=directory
+    mode=0755
+    owner=root
+    group=root
+
 - name: Adding/removing Nginx virtual hosts
   include: vhost.yml

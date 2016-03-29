@@ -11,6 +11,13 @@ root {{ item.value.root }};
     log_not_found off;
 
 
+    ## HTTP Basic Auth
+{% if item.value.auth is defined %}
+    auth_basic "{{ item.key }}";
+    auth_basic_user_file {{ nginx.default_htpasswds_path }}/{{ item.key }};
+{% endif %}
+
+
     ## Locations
 
 {% if item.value.nginx is defined %}
