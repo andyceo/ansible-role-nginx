@@ -79,9 +79,10 @@ nginx:
       # This ssl_session* params hold up to 20 000 ssl sessions.
       ssl_session_cache: 'shared:SSL:5m'
       ssl_session_timeout: '10m'
-      # default ssl server key and certificate (openssl package)
-      ssl_certificate: '/etc/ssl/certs/ssl-cert-snakeoil.pem'
-      ssl_certificate_key: '/etc/ssl/private/ssl-cert-snakeoil.key'
+      # default ssl server key and certificate (ssl-cert package)
+      # set this values on real SSL servers
+      #ssl_certificate: '/etc/ssl/certs/ssl-cert-snakeoil.pem'
+      #ssl_certificate_key: '/etc/ssl/private/ssl-cert-snakeoil.key'
 
     ##
     # Additional headers
