@@ -15,7 +15,7 @@ server {
     listen *:80 default_server;
     listen [::]:80 default_server ipv6only=on;
 
-    {% if vhosts.default.root is defined %}root {{ vhosts.default.root }};{% endif %}
+    root {{ vhosts.default.root }};
 
     # Make site accessible from http://localhost/ and let serve
     # requests without "HOST" header
@@ -28,5 +28,8 @@ server {
 {% endif %}
     server_name {{ vhosts.default.name }};
 
-    return 444;
+    location ~ ^/(.well-known/acme-challenge/.*)$ {
+      root {{ letsencrypt.webroot|default(vhosts.default.root) }};
+    }
+
 }

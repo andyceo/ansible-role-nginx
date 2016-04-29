@@ -20,9 +20,8 @@ server {
 {% endfor %}
 
     ssl on;
-{% for key, value in item.value.nginx.ssl.iteritems() | sort %}
-    {{ key }} {{ value }};
-{% endfor %}
+    ssl_certificate {{ item.value.ssl.certificate }};
+    ssl_certificate_key {{ item.value.ssl.private_key }};
 
     return 301 https://{{ item.value.name }}$request_uri;
 }
@@ -34,9 +33,9 @@ server {
     server_name {{ item.value.name }};
 
     ssl on;
-{% for key, value in item.value.nginx.ssl.iteritems() | sort %}
-    {{ key }} {{ value }};
-{% endfor %}
+    ssl_certificate {{ item.value.ssl.certificate }};
+    ssl_certificate_key {{ item.value.ssl.private_key }};
+
     add_header Strict-Transport-Security "max-age=31536000; preload";
 
     {% include 'nginx.vhost.base.conf.j2' %}

@@ -372,6 +372,9 @@ vhosts:
     name: www.drupal8-example.com
     aliases:
       - drupal8-example.com
+    ssl:
+      certificate: '/etc/ssl/certs/drupal8-example.crt'
+      private_key: '/etc/ssl/private/your_server_hostname.key'
     nginx:
       template: nginx.vhost.www.ssl.conf.j2
       locations:
@@ -388,10 +391,6 @@ vhosts:
         11_drupal_php_fpm: drupal_php_fpm
         12_drupal_styles: drupal_styles
         13_static: static
-      ssl:
-        ssl_certificate: '/etc/ssl/certs/drupal8-example.crt'
-        ssl_certificate_key: '/etc/ssl/private/your_server_hostname.key'
-
 
 # phpMyAdmin on subdomain, without ssl (https)
   'phpmyadmin.example.com':
