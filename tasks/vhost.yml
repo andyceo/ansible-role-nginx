@@ -1,7 +1,6 @@
 ---
 
 # Description: Create a new Nginx virtual hosts
-# Original from: https://github.com/gaspaio/ansible-devbox/blob/master/roles/apache/tasks/vhost_add.yml
 #
 # Parameters:
 # - {{ vhosts }} : Virtual hosts hash. See defaults/main.yml
