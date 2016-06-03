@@ -7,6 +7,7 @@ nginx:
   default_log_path: /var/log/nginx
   default_htpasswds_path: /etc/nginx/htpasswds
   package: nginx # nginx (synonym of nginx-core) | nginx-core | nginx-extras | nginx-full | nginx-light | nginx-naxsi
+  repository: ubuntu # ubuntu | nginx
   settings:
     global:
       user: www-data

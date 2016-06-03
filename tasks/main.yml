@@ -1,9 +1,25 @@
 ---
 
 - name: Install dependencies for Ansible apt* modules
-  command: apt-get install python-apt aptitude
+  command: apt-get install aptitude python-apt python-pycurl
   register: preconf_apt_dependencies_installed
   changed_when: "'is already the newest version' not in preconf_apt_dependencies_installed.stdout"
+
+- name: Add nginx repository key, if needed
+  apt_key:
+    id: ABF5BD827BD9BF62
+    keyserver: keyserver.ubuntu.com
+    state: present
+  when: "nginx.repository == 'nginx'"
+
+- name: Add nginx repository
+  apt_repository:
+    repo={{ item }}
+    state=present
+  with_items:
+    - "deb http://nginx.org/packages/ubuntu/ {{ ansible_distribution_release }} nginx"
+    - "deb-src http://nginx.org/packages/ubuntu/ {{ ansible_distribution_release }} nginx"
+  when: "nginx.repository == 'nginx'"
 
 - name: Install ssl-cert package to generate default ssl snakeoil certificates
   apt: pkg=ssl-cert
