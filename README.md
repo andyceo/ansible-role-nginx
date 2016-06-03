@@ -31,3 +31,26 @@ Below every scenario will be explained in details.
 ## Requirements
 
 Ubuntu 14.04
+
+
+## Variables
+
+This role support `vhosts` variable. See it structure [here](https://github.com/andyceo/ansible-example#vhosts). This role can add to every virtual hosts configuration key `nginx` with following value:
+
+---
+
+vhosts:
+  www.example.com:
+    enabled: yes
+    name: www.example.com
+    aliases:
+      - example.com
+    root: /var/www
+    nginx:
+      template: {{ ansible_hostname }}/www.example.com.conf.j2
+
+nginx:
+  template: 
+  locations:
+  settings:
+  listen:
