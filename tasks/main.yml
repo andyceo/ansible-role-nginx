@@ -5,6 +5,9 @@
   register: preconf_apt_dependencies_installed
   changed_when: "'is already the newest version' not in preconf_apt_dependencies_installed.stdout"
 
+- name: Install ssl-cert package to generate default ssl snakeoil certificates
+  apt: pkg=ssl-cert
+
 - name: Install nginx package
   apt: pkg={{ nginx.package }}
 
