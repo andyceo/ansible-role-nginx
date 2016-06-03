@@ -6,6 +6,7 @@ nginx:
   default_vhost_path: /etc/nginx/sites-available/default
   default_log_path: /var/log/nginx
   default_htpasswds_path: /etc/nginx/htpasswds
+  package: nginx # nginx (synonym of nginx-core) | nginx-core | nginx-extras | nginx-full | nginx-light | nginx-naxsi
   settings:
     global:
       user: www-data
